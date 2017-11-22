@@ -1,6 +1,8 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 /*
  * Class to control the player object
@@ -20,6 +22,8 @@ public class Player : MonoBehaviour {
 	public double distance;
 	private int startingPoint;
 	private Rigidbody rb;
+	private static int health;
+	public Text hpText;
 
 	//Prefabs
 	//fields to create new road, reference to a Prefab object
@@ -30,6 +34,8 @@ public class Player : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
 		rb = GetComponent<Rigidbody>();
+		health = 1;
+		healthSetup ();
 		speed = 10f;
 		HorizontalVelocity = 0;
 		VerticalVelocity = 0;
@@ -41,24 +47,25 @@ public class Player : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
 
+		healthSetup ();
 		distance =  transform.position.z + startingPoint;
 
 		rb.velocity = new Vector3 (HorizontalVelocity, VerticalVelocity, speed);
 
 		if (Input.GetKeyDown(moveLeft)) {
-			HorizontalVelocity = -5f;
+			HorizontalVelocity = -3f;
 		}
 
 		if (Input.GetKeyDown (moveRight)) {
-			HorizontalVelocity = 5f;
+			HorizontalVelocity = 3f;
 		}
 
 		if (Input.GetKeyDown (moveUp)) {
-			VerticalVelocity = 5f;
+			VerticalVelocity = 3f;
 		}
 
 		if (Input.GetKeyDown (moveDown)) {
-			VerticalVelocity = -5f;
+			VerticalVelocity = -3f;
 		}
 	}
 
@@ -81,15 +88,29 @@ public class Player : MonoBehaviour {
 		//destroy previous road
 		if (other.gameObject.tag == "DestroyRoad") {
 
-			Destroy(other.transform.parent.gameObject);
+			Destroy(other.transform.parent.gameObject); //destroy the parent object in which this object is attached
 		}
 	}
 
 	//add collisions here
 	void OnCollisionEnter(Collision other ){
 		if(other.gameObject.tag == "Danger"){
+			health--;
 		}
 		if(other.gameObject.tag == "PowerUps"){
+			health++;
+			Destroy (other.gameObject);
 		}
+	}
+
+	//set up hptext HUD
+	void healthSetup(){
+		if (health > 100) {
+			health = 100;
+		}
+		if (health <= 0) {
+			SceneManager.LoadScene (2);
+		}
+		hpText.text = health.ToString();
 	}
 }
