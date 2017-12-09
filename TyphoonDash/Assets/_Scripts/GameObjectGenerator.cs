@@ -15,15 +15,14 @@ public class GameObjectGenerator : MonoBehaviour {
 	public Transform slowtimePrefab;
 
 	private int rndObsObj; //randomly pick what obstacle object to instantiate
-	private int obsCount; //to be global? increase per distance
+	public static int obsCount; //to be global? increase per distance
 
-	private int pwCount; //global 
+	public  static int pwCount; //global 
 	private int rndPwObj; //randomly pick what power up object to instantiate
 
 	// Use this for initialization
 	void Start () {
-		obsCount = 10;
-		pwCount = 5;
+
 		// procedural instantiation of obstacle objects
 		for (int i = 0; i < obsCount; i++) {
 			rndObsObj = Random.Range (0, 2); 
