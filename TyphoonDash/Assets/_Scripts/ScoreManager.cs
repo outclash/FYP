@@ -2,15 +2,14 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-
+using TMPro;
 public class ScoreManager : MonoBehaviour {
 
-	Text score;
+	private TextMeshProUGUI score;
+
 	// Use this for initialization
 	void Awake(){
-		
-		score = GetComponent<Text> ();
-
+		score = GetComponent <TextMeshProUGUI> ();
 	}
 	void Start () {
 		score.text = "0";
