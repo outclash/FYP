@@ -18,10 +18,9 @@ public class Player : MonoBehaviour
 	//change to private later
 	public float HorizontalVelocity;
 	public float VerticalVelocity;
-	public double distance;
+	public float distance;
 	//for computing to inc lvl
-	public static double score;
-	private int startingPoint;
+	public static float score;
 	private Rigidbody rb;
 	private int health;
 	public Image heart;
@@ -57,7 +56,6 @@ public class Player : MonoBehaviour
 		HorizontalVelocity = 0;
 		VerticalVelocity = 0;
 		distance = 0;
-		startingPoint = 47;
 		skies = 1;
 		obsMaxCount = false;
 		lvlMultiplier = 1;
@@ -72,26 +70,63 @@ public class Player : MonoBehaviour
 	{
 
 		healthSetup ();
-		distance = transform.position.z + startingPoint;
+		distance = transform.position.z;
 		increaseLevel ();
+//
+//		rb.velocity = new Vector3 (HorizontalVelocity, VerticalVelocity, speed);
+//
+//		if (Input.GetKeyDown (KeyCode.LeftArrow)) {
+//			HorizontalVelocity = -3f;
+//		}
+//
+//		if (Input.GetKeyDown (KeyCode.RightArrow)) {
+//			HorizontalVelocity = 3f;
+//		}
+//
+//		if (Input.GetKeyDown (KeyCode.UpArrow)) {
+//			VerticalVelocity = 3f;
+//		}
+//
+//		if (Input.GetKeyDown (KeyCode.DownArrow)) {
+//			VerticalVelocity = -3f;
+//		}
+	}
+	private float moveSpeed = 5.0f;
+	void FixedUpdate(){
 
-		rb.velocity = new Vector3 (HorizontalVelocity, VerticalVelocity, speed);
+		float moveHorizontal = Input.GetAxis ("Horizontal");
+		float moveVertical = Input.GetAxis ("Vertical");
 
-		if (Input.GetKeyDown (KeyCode.LeftArrow)) {
-			HorizontalVelocity = -3f;
+		Vector3 movement = new Vector3 (moveHorizontal * moveSpeed , moveVertical * moveSpeed, speed);
+		rb.velocity = (movement);
+
+		//Border Collision = bounce back
+		int borderRicochet = 5000;
+		if ( transform.position.y < 0) {
+			rb.AddForce (Random.Range(-borderRicochet,borderRicochet),borderRicochet,0) ;
+			//stop player movement after 2 second able to move again
+			moveSpeed = 0f; 
+			Invoke ("move",2);
 		}
-
-		if (Input.GetKeyDown (KeyCode.RightArrow)) {
-			HorizontalVelocity = 3f;
+		if ( transform.position.y > 10) {
+			rb.AddForce (Random.Range(-borderRicochet,borderRicochet),-borderRicochet,0) ;
+			moveSpeed = 0f;
+			Invoke ("move",2);
 		}
-
-		if (Input.GetKeyDown (KeyCode.UpArrow)) {
-			VerticalVelocity = 3f;
+		if ( transform.position.x < -5f) {
+			rb.AddForce (borderRicochet,Random.Range(-borderRicochet,borderRicochet),0) ;
+			moveSpeed = 0f;
+			Invoke ("move",2);
 		}
-
-		if (Input.GetKeyDown (KeyCode.DownArrow)) {
-			VerticalVelocity = -3f;
+		if ( transform.position.x > 5f) {
+			rb.AddForce (-borderRicochet,Random.Range(-borderRicochet,borderRicochet),0) ;
+			moveSpeed = 0f;
+			Invoke ("move",2);
 		}
+	}
+
+	 public void move(){ //make the player move again
+		moveSpeed = 5.0f;
 	}
 
 	//all triggers here
@@ -120,12 +155,20 @@ public class Player : MonoBehaviour
 	//add collisions here
 	void OnCollisionEnter (Collision other)
 	{
+		int obstacleRicochet = 2000;
+//		int borderRicochet = 5000;
+
 		if (other.gameObject.tag == "Danger") {
 			if (isSheild) {
 				Destroy (other.gameObject);
 				isSheild = false;
 			} 
 			else {
+				//bounce back if hit obstacle
+				rb.AddForce (Random.Range(-obstacleRicochet,obstacleRicochet),Random.Range(-obstacleRicochet,obstacleRicochet),-obstacleRicochet) ;
+				//turn off collider to remove double damage on the same object
+				Collider ot = other.gameObject.GetComponent<Collider> ();
+				ot.enabled = !ot.enabled;
 				health--;
 			}
 
@@ -141,6 +184,19 @@ public class Player : MonoBehaviour
 				Destroy (other.gameObject);
 			}
 		}
+//		//Border Collision = bounce back
+//		if (other.gameObject.name == "SkyBottom" || transform.position.y < 0.2f) {
+//			rb.AddForce (Random.Range(-borderRicochet,borderRicochet),borderRicochet,0) ;
+//		}
+//		if (other.gameObject.name == "SkyTop" || transform.position.y > 9.5f) {
+//			rb.AddForce (Random.Range(-borderRicochet,borderRicochet),-borderRicochet,0) ;
+//		}
+//		if (other.gameObject.name == "SkyLeft" || transform.position.x < -4.5f) {
+//			rb.AddForce (borderRicochet,Random.Range(-borderRicochet,borderRicochet),0) ;
+//		}
+//		if (other.gameObject.name == "SkyRight" || transform.position.x > 4.5f) {
+//			rb.AddForce (-borderRicochet,Random.Range(-borderRicochet,borderRicochet),0) ;
+//		}
 	}
 
 	//set up hptext HUD
@@ -153,19 +209,21 @@ public class Player : MonoBehaviour
 			score = distance;
 			SceneManager.LoadScene (2);
 		}
-		heart.sprite = spHP[health-1];
+		if (health > 0) {
+			heart.sprite = spHP [health - 1];
+		}
 	}
 
 	void increaseLevel ()
 	{
-		const int maxSpeed = 100;
-		long lvlDistance = 30; //set up for demo, change to 250 later
+		const int maxSpeed = 50;
+		int lvlDistance = 30; //set up for demo, change to 250 later
 		int dis1000 = 90; //set for demo, change to 1000 later
 		int dis500 = 30; //set for demo. change to 500 later
 
 		if (distance > (lvlDistance * lvlMultiplier)) {
 			GameObjectGenerator.pwCount = Random.Range (1, 4); //power up count change every lvlDistance reach
-			long lvlDist = lvlDistance * lvlMultiplier;
+			int lvlDist = lvlDistance * lvlMultiplier;
 			speed += incSpeed;
 			lvlMultiplier++;
 
