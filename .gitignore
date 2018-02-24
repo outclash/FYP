@@ -6,7 +6,7 @@
 [Bb]uilds/
 [Uu]nityGenerated/
 Assets/AssetStoreTools*
-
+*.meta
 # Visual Studio 2015 cache directory
 /.vs/
 

@@ -19,13 +19,14 @@ public class Player : MonoBehaviour
 	public float HorizontalVelocity;
 	public float VerticalVelocity;
 	public float distance;
+	private float moveSpeed;
 	//for computing to inc lvl
 	public static float score;
 	private Rigidbody rb;
 	private int health;
 	public Image heart;
 	public Sprite[] spHP;
-	private bool isSheild;
+	private bool isShield;
 	//Prefabs
 	//fields to create new road, reference to a Prefab object
 	public Transform SkyRoadPrefab1;
@@ -53,6 +54,7 @@ public class Player : MonoBehaviour
 		health = 3;
 		healthSetup ();
 		speed = 10f;
+		moveSpeed = 10.0f;
 		HorizontalVelocity = 0;
 		VerticalVelocity = 0;
 		distance = 0;
@@ -62,7 +64,7 @@ public class Player : MonoBehaviour
 		dis1KMultiplier = 1;
 		dis5HMultiplier = 1;
 		incSpeed = 1f;
-		isSheild = false;
+		isShield = false;
 	}
 
 	// Update is called once per frame
@@ -91,13 +93,15 @@ public class Player : MonoBehaviour
 //			VerticalVelocity = -3f;
 //		}
 	}
-	private float moveSpeed = 5.0f;
+
 	void FixedUpdate(){
 
 		float moveHorizontal = Input.GetAxis ("Horizontal");
 		float moveVertical = Input.GetAxis ("Vertical");
-
-		Vector3 movement = new Vector3 (moveHorizontal * moveSpeed , moveVertical * moveSpeed, speed);
+		float accX = Input.acceleration.x;
+		float accY = Input.acceleration.y;
+		//Vector3 movement = new Vector3 (moveHorizontal * moveSpeed , moveVertical * moveSpeed, speed);
+		Vector3 movement = new Vector3 (accX * moveSpeed , accY * moveSpeed, speed);
 		rb.velocity = (movement);
 
 		//Border Collision = bounce back
@@ -106,22 +110,22 @@ public class Player : MonoBehaviour
 			rb.AddForce (Random.Range(-borderRicochet,borderRicochet),borderRicochet,0) ;
 			//stop player movement after 2 second able to move again
 			moveSpeed = 0f; 
-			Invoke ("move",2);
+			Invoke ("move",1.5f);
 		}
 		if ( transform.position.y > 10) {
 			rb.AddForce (Random.Range(-borderRicochet,borderRicochet),-borderRicochet,0) ;
 			moveSpeed = 0f;
-			Invoke ("move",2);
+			Invoke ("move",1.5f);
 		}
 		if ( transform.position.x < -5f) {
 			rb.AddForce (borderRicochet,Random.Range(-borderRicochet,borderRicochet),0) ;
 			moveSpeed = 0f;
-			Invoke ("move",2);
+			Invoke ("move",1.5f);
 		}
 		if ( transform.position.x > 5f) {
 			rb.AddForce (-borderRicochet,Random.Range(-borderRicochet,borderRicochet),0) ;
 			moveSpeed = 0f;
-			Invoke ("move",2);
+			Invoke ("move",1.5f);
 		}
 	}
 
@@ -159,9 +163,9 @@ public class Player : MonoBehaviour
 //		int borderRicochet = 5000;
 
 		if (other.gameObject.tag == "Danger") {
-			if (isSheild) {
+			if (isShield) {
 				Destroy (other.gameObject);
-				isSheild = false;
+				isShield = false;
 			} 
 			else {
 				//bounce back if hit obstacle
@@ -175,11 +179,12 @@ public class Player : MonoBehaviour
 		}
 		if (other.gameObject.tag == "PowerUps") {
 			if (other.gameObject.name == "Burger(Clone)") {
-				health++;
+				speed += 5;
+				Invoke ("speedNorm",5);
 				Destroy (other.gameObject);
 			}
 			if (other.gameObject.name == "Pizza(Clone)") {
-				isSheild = true;
+				isShield = true;
 				//health = 1;
 				Destroy (other.gameObject);
 			}
@@ -197,6 +202,10 @@ public class Player : MonoBehaviour
 //		if (other.gameObject.name == "SkyRight" || transform.position.x > 4.5f) {
 //			rb.AddForce (-borderRicochet,Random.Range(-borderRicochet,borderRicochet),0) ;
 //		}
+	}
+
+	void speedNorm(){ //return speed to normal after 5 seconds of getting burger power up
+		speed -= 5;
 	}
 
 	//set up hptext HUD
