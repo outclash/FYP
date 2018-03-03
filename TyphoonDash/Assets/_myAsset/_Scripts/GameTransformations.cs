@@ -22,7 +22,7 @@ public class GameTransformations : MonoBehaviour {
 
 		}
 
-		if(gameObject.tag == "PowerUps"){
+		if(gameObject.tag == "honeycoin"){
 			transform.Rotate ((new Vector3 ( Random.Range(1.0f, 50.0f), Random.Range(1.0f, 50.0f), Random.Range(1.0f, 50.0f)) * Time.deltaTime) * Random.Range (1.0f, 10.0f)) ; //Time.deltatime to be smooth and framerate independent
 		
 		}

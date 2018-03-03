@@ -7,17 +7,35 @@ using Mono.Data.Sqlite;
 
 public class DBManager : MonoBehaviour
 {
+	private static DBManager DB; 
 	private string dbPath;
-	public String logName;
+	public string logName;
 	public int charCount;
+	public string charname;
+	public float currHighScore;
+	public int currCoins;
+	public int pu1Count;
+	public int pu2Count;
 	public List<ProfileList> profList = new List<ProfileList> ();
 
-	// Use this for initialization
+	public int coinGain; //store coin gain per game
+	public float currScore; //store score per game
+
 	void Start ()
 	{
+		//Set this Game manager to persist all the time
+		if (DB == null) {
+			DontDestroyOnLoad (gameObject);
+			DB = this;
+		} else if (DB != this) {
+			Destroy (gameObject);
+		}
 		dbPath = "URI=file:" + Application.dataPath + "/gameDB.sqlite";
 		//loginAcc ("user1","password");
-		//createDBTable (); 
+		logName = null;
+		charCount = 0;
+		charname = null;
+		createDBTable (); 
 		//newAccount ("user1", "password", "sas");
 		//newCharProfile("user1","bas");
 		//deleteProfile("sas");
@@ -55,8 +73,9 @@ public class DBManager : MonoBehaviour
 	}
 
 	//check user  login
-	public void loginAcc (string username, string pw)
+	public Boolean loginAcc (string username, string pw)
 	{
+		Debug.Log (username + pw);
 		using (IDbConnection conn = new SqliteConnection (dbPath)) {
 			try {
 				conn.Open ();
@@ -75,24 +94,33 @@ public class DBManager : MonoBehaviour
 								if (reader.GetString (0) == pw) {
 									logName = username;
 									charCount = reader.GetInt32 (1);
+									reader.Close ();
 									Debug.Log (logName + charCount);
+									return true;
+								} else { 
+									reader.Close ();
+									Debug.Log ("else wrong pw");
+									return false;
 								}
 							}
-							reader.Close ();
+							Debug.Log ("fk");
+							return false; //?
 						}
-	
+					} else {
+						return false;
 					}
 				}
 
 			} catch (Exception e) {
 				Debug.Log ("Error login");
+				return false;
 			} finally {
 				conn.Close ();
 			}
 		}
 	}
 	//adds new account and profile
-	public void newAccount (string uname, string pw, string cname)
+	public Boolean newAccount (string uname, string pw, string cname)
 	{
 		using (IDbConnection conn = new SqliteConnection (dbPath)) {
 			try {
@@ -121,20 +149,24 @@ public class DBManager : MonoBehaviour
 						res = dbCmd.ExecuteNonQuery ();
 						//object sd = dbCmd.ExecuteScalar ();
 						Debug.Log ("table result insert prof: " + res); //1 = success when using insert
+						return true;
+					} else {
+						return false;
 					}
 				}
 			} catch (Exception e) {
 				Debug.Log ("Error creating prrofile");
 				Debug.Log (e);
+				return false;
+
 			} finally {
 				conn.Close ();
 			}
 		}
 	}
 
-	public void newCharProfile (string uname, string cname)
+	public Boolean newCharProfile (string cname)
 	{
-		//if(username.charcount is < 4) charcount++, update account charcount +1
 		using (IDbConnection conn = new SqliteConnection (dbPath)) {
 			try {
 				conn.Open ();
@@ -148,33 +180,37 @@ public class DBManager : MonoBehaviour
 					dbCmd.Parameters.Add (new SqliteParameter { ParameterName = "coin", Value = 0 });
 					dbCmd.Parameters.Add (new SqliteParameter { ParameterName = "pu1", Value = 0 });
 					dbCmd.Parameters.Add (new SqliteParameter { ParameterName = "pu2", Value = 0 });
-					dbCmd.Parameters.Add (new SqliteParameter { ParameterName = "usname", Value = uname });
+					dbCmd.Parameters.Add (new SqliteParameter { ParameterName = "usname", Value = logName });
 					int res = dbCmd.ExecuteNonQuery ();
 					//object sd = dbCmd.ExecuteScalar ();
-					Debug.Log ("succes new cahr: " + res); //1 = success when using insert
+					Debug.Log ("succes new cahr: " + res); //1 = success 
 
 					//update account character count
 					query = "UPDATE Account SET CharCount = @cc WHERE Username = @usname;";
 					dbCmd.CommandText = query;
-
-					dbCmd.Parameters.Add (new SqliteParameter { ParameterName = "cc", Value = 2 }); //value = uname.charcount++
-					dbCmd.Parameters.Add (new SqliteParameter { ParameterName = "usname", Value = uname });
+					charCount++;
+					dbCmd.Parameters.Add (new SqliteParameter { ParameterName = "cc", Value = charCount });
+					dbCmd.Parameters.Add (new SqliteParameter { ParameterName = "usname", Value = logName });
 
 					res = dbCmd.ExecuteNonQuery ();
 					//object sd = dbCmd.ExecuteScalar ();
-					Debug.Log ("update account charcount: " + res); //1 = success when using insert
-
+					Debug.Log ("update account charcount: " + res); 
+					Debug.Log ("charcount: " + charCount);//1 = success when using insert
+					charname = null;
+					readProfile ();
+					return true;
 				}
 			} catch (Exception e) {
 				Debug.Log ("Error creating new char prrofile");
-				Debug.Log (e);
+				//Debug.Log (e);
+				return false;
 			} finally {
 				conn.Close ();
 			}
 		}
 	}
 
-	public void readProfile (string uname)
+	public void readProfile ()
 	{ 
 		profList.Clear ();
 		using (IDbConnection conn = new SqliteConnection (dbPath)) {
@@ -183,12 +219,12 @@ public class DBManager : MonoBehaviour
 				using (IDbCommand dbCmd = conn.CreateCommand ()) {
 					string query = "SELECT * FROM Profile WHERE Username = @usname";
 					dbCmd.CommandText = query;
-					dbCmd.Parameters.Add (new SqliteParameter { ParameterName = "usname", Value = uname });
+					dbCmd.Parameters.Add (new SqliteParameter { ParameterName = "usname", Value = logName });
 
 					using (IDataReader reader = dbCmd.ExecuteReader ()) {
 						while (reader.Read ()) {
-
-							profList.Add(new ProfileList(reader.GetString (1), reader.GetString (2), reader.GetInt32 (3), reader.GetInt32 (4), reader.GetInt32 (5)));
+							Debug.Log ("profl");
+							profList.Add (new ProfileList (reader.GetString (1), reader.GetString (2), reader.GetInt32 (3), reader.GetInt32 (4), reader.GetInt32 (5)));
 							//Debug.Log (reader.GetString (1) + ", " + reader.GetString (2) + ", " + reader.GetInt32 (3) + ", " + reader.GetInt32 (4) + ", " + reader.GetInt32 (5) + ", " + reader.GetString (6));
 						}
 						reader.Close ();
@@ -204,7 +240,7 @@ public class DBManager : MonoBehaviour
 		}
 	}
 
-	public void updateProfile (string cname, string scr, int coin, int pu1, int pu2)
+	public void updateProfile ()
 	{ 
 		using (IDbConnection conn = new SqliteConnection (dbPath)) {
 			try {
@@ -213,14 +249,15 @@ public class DBManager : MonoBehaviour
 					string query = "UPDATE Profile SET Score = @score, Coins = @coin, PU1 = @pu1, PU2 = @pu2 WHERE CharName = @chname";
 					dbCmd.CommandText = query;
 
-					dbCmd.Parameters.Add (new SqliteParameter { ParameterName = "chname", Value = cname });
-					dbCmd.Parameters.Add (new SqliteParameter { ParameterName = "score", Value = scr });
-					dbCmd.Parameters.Add (new SqliteParameter { ParameterName = "coin", Value = coin });
-					dbCmd.Parameters.Add (new SqliteParameter { ParameterName = "pu1", Value = pu1 });
-					dbCmd.Parameters.Add (new SqliteParameter { ParameterName = "pu2", Value = pu2 });
+					dbCmd.Parameters.Add (new SqliteParameter { ParameterName = "chname", Value = charname });
+					dbCmd.Parameters.Add (new SqliteParameter { ParameterName = "score", Value = currHighScore.ToString ("F") });
+					dbCmd.Parameters.Add (new SqliteParameter { ParameterName = "coin", Value = currCoins });
+					dbCmd.Parameters.Add (new SqliteParameter { ParameterName = "pu1", Value = pu1Count });
+					dbCmd.Parameters.Add (new SqliteParameter { ParameterName = "pu2", Value = pu2Count });
 
 					int res = dbCmd.ExecuteNonQuery ();
 					//object sd = dbCmd.ExecuteScalar ();
+					readProfile ();
 					Debug.Log ("update prof only: " + res); //1 = success when using insert
 				}
 
@@ -232,7 +269,15 @@ public class DBManager : MonoBehaviour
 		}
 	}
 
-	public void deleteAccount (string uname)
+	public void afterGameUpdate(){
+		if (currScore > currHighScore) {
+			currHighScore = currScore;
+		}
+		currCoins += coinGain;
+		updateProfile ();
+	}
+
+	public void deleteAccount ()
 	{ 
 		using (IDbConnection conn = new SqliteConnection (dbPath)) {
 			try {
@@ -241,7 +286,7 @@ public class DBManager : MonoBehaviour
 					//delete child all profiles first
 					string query = "DELETE FROM Profile WHERE Username = @usname";
 					dbCmd.CommandText = query;
-					dbCmd.Parameters.Add (new SqliteParameter { ParameterName = "usname", Value = uname });
+					dbCmd.Parameters.Add (new SqliteParameter { ParameterName = "usname", Value = logName });
 
 					int res = dbCmd.ExecuteNonQuery ();
 					//object sd = dbCmd.ExecuteScalar ();
@@ -250,7 +295,7 @@ public class DBManager : MonoBehaviour
 					//delete account
 					query = "DELETE FROM Account WHERE Username = @usname";
 					dbCmd.CommandText = query;
-					dbCmd.Parameters.Add (new SqliteParameter { ParameterName = "usname", Value = uname });
+					dbCmd.Parameters.Add (new SqliteParameter { ParameterName = "usname", Value = logName });
 					res = dbCmd.ExecuteNonQuery ();
 					Debug.Log ("del acc : " + res); //1 = success when using insert
 				}
@@ -263,7 +308,7 @@ public class DBManager : MonoBehaviour
 		}
 	}
 
-	public void deleteProfile (string cname)
+	public void deleteProfile ()
 	{ 
 		using (IDbConnection conn = new SqliteConnection (dbPath)) {
 			try {
@@ -272,11 +317,24 @@ public class DBManager : MonoBehaviour
 					//delete child all profiles first
 					string query = "DELETE FROM Profile WHERE CharName = @chname";
 					dbCmd.CommandText = query;
-					dbCmd.Parameters.Add (new SqliteParameter { ParameterName = "chname", Value = cname });
+					dbCmd.Parameters.Add (new SqliteParameter { ParameterName = "chname", Value = charname });
 
 					int res = dbCmd.ExecuteNonQuery ();
 					//object sd = dbCmd.ExecuteScalar ();
 					Debug.Log ("del prof only: " + res); //1 = success when using insert
+
+					query = "UPDATE Account SET CharCount = @cc WHERE Username = @usname;";
+					dbCmd.CommandText = query;
+					charCount--;
+					dbCmd.Parameters.Add (new SqliteParameter { ParameterName = "cc", Value = charCount });
+					dbCmd.Parameters.Add (new SqliteParameter { ParameterName = "usname", Value = logName });
+
+					res = dbCmd.ExecuteNonQuery ();
+					//object sd = dbCmd.ExecuteScalar ();
+					Debug.Log ("update account charcount: " + res); 
+					Debug.Log ("charcount: " + charCount);//1 = success when using insert
+					charname = null;
+					readProfile ();
 				}
 
 			} catch (Exception e) {

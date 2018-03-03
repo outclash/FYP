@@ -6,40 +6,61 @@ using TMPro;
 
 public class GameManager : MonoBehaviour {
 
-//	public TextMeshProUGUI[] scoreBoard;
-//
-//	private string[] keys = {"Gold","Silver","Bronze"};
-//	private float[] highScores = new float[3];
+	//public static GameManager GManager;
+	public DBManager DB;
+	public TextMeshProUGUI sysMsg;
+	public TextMeshProUGUI pu1txt;
+	public TextMeshProUGUI pu2txt;
+	public TextMeshProUGUI coinstxt;
+	public GameObject Login;
+	public GameObject newACC;
+	public GameObject MainMenu;
+	public GameObject ProfBoard;
+	public GameObject newProf;
+	public GameObject shop;
+	public GameObject profDataPrefab;
 
+	//make db singleton just make thjis every time
 	void Awake(){
-		
+		DB = GameObject.Find ("DBManager").GetComponent<DBManager> ();
+		sysMsg = GameObject.Find ("sysMsg").GetComponent<TextMeshProUGUI>();
+		pu1txt = GameObject.Find ("ownpu1").GetComponent<TextMeshProUGUI>();
+		pu2txt = GameObject.Find ("ownpu2").GetComponent<TextMeshProUGUI>();
+		coinstxt = GameObject.Find ("money").GetComponent<TextMeshProUGUI>();
+		Login = GameObject.Find ("Login");
+		newACC = GameObject.Find ("NewAccount");
+		MainMenu = GameObject.Find ("MainMenu");
+		ProfBoard = GameObject.Find ("ProfileBoard");
+		newProf = GameObject.Find ("NewChara");
+		shop = GameObject.Find ("Shop");
+		Debug.Log ("awake GM");
 	}
 
-	// Use this for initialization
 	void Start () {
-//		//PlayerPrefs.DeleteAll ();
-//		for(int i = 0; i < keys.Length; i++) {
-//			highScores[i] = PlayerPrefs.GetFloat(keys[i],0);
-//		}
+		Debug.Log ("start GM");
+		sysMsg.text = "";
+		Login.SetActive (true);
+		newACC.SetActive (false);
+		ProfBoard.SetActive (false);
+		MainMenu.SetActive (false);
+		newProf.SetActive (false);
+		shop.SetActive (false);
 	}
 
-
-	// Update is called once per frame
-	void Update () {
-//		//set playerpref scoreboard
-//		for (int i = 0; i < highScores.Length; i++) {
-//			scoreBoard[i].text = highScores[i].ToString("F") + "M";
-//		}
+	void Update(){
+		pu1txt.text = DB.pu1Count.ToString();
+		pu2txt.text = DB.pu2Count.ToString();
+		coinstxt.text = DB.currCoins.ToString ();
 	}
 
-
-//	public void play(){
-//		SceneManager.LoadScene (1);
-//	}
-//
-//	public void mainMenu(){
-//		SceneManager.LoadScene (0);
-//		//SceneManager.LoadSceneAsync
-//	}
-//		
+	public void reset(){
+		DB.logName = null;
+		DB.charCount = 0;
+		DB.charname = null;
+		DB.profList.Clear ();
+		Transform temp = ProfBoard.transform.GetChild (4).transform;
+		for(int i= 0; i < temp.childCount; i++) {
+			Destroy (temp.GetChild(i).gameObject);
+		}
+	}
 }

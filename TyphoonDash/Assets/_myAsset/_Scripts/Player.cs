@@ -26,7 +26,8 @@ public class Player : MonoBehaviour
 	private int health;
 	public Image heart;
 	public Sprite[] spHP;
-	private bool isShield;
+	public bool isShield;
+	public bool isBoost;
 	//Prefabs
 	//fields to create new road, reference to a Prefab object
 	public Transform SkyRoadPrefab1;
@@ -41,11 +42,18 @@ public class Player : MonoBehaviour
 	int dis5HMultiplier;
 	float incSpeed;
 
+	public DBManager DB;
+	private GameObject speedfx;
+	private GameObject shieldfx;
+
 	void Awake ()
 	{ //reference and initialise even if the script is not yet enabled.
 		rb = GetComponent<Rigidbody> ();
-		GameObjectGenerator.pwCount = 3;
+		GameObjectGenerator.coinCount = 1;
 		GameObjectGenerator.obsCount = 10;
+		DB = GameObject.Find ("DBManager").GetComponent<DBManager> ();
+		speedfx = GameObject.Find ("Speedfx");
+		shieldfx = GameObject.Find ("Bee").transform.GetChild (2).gameObject;
 	}
 
 	// Use this for initialization
@@ -65,78 +73,65 @@ public class Player : MonoBehaviour
 		dis5HMultiplier = 1;
 		incSpeed = 1f;
 		isShield = false;
+		isBoost = false;
+		speedfx.SetActive (false);
+		shieldfx.SetActive (false);
 	}
 
 	// Update is called once per frame
 	void Update ()
 	{
-
 		healthSetup ();
 		distance = transform.position.z;
 		increaseLevel ();
-//
-//		rb.velocity = new Vector3 (HorizontalVelocity, VerticalVelocity, speed);
-//
-//		if (Input.GetKeyDown (KeyCode.LeftArrow)) {
-//			HorizontalVelocity = -3f;
-//		}
-//
-//		if (Input.GetKeyDown (KeyCode.RightArrow)) {
-//			HorizontalVelocity = 3f;
-//		}
-//
-//		if (Input.GetKeyDown (KeyCode.UpArrow)) {
-//			VerticalVelocity = 3f;
-//		}
-//
-//		if (Input.GetKeyDown (KeyCode.DownArrow)) {
-//			VerticalVelocity = -3f;
-//		}
 	}
 
-	void FixedUpdate(){
+	void FixedUpdate ()
+	{
+
+		//user for phone accelerometer
+		//float accX = Input.acceleration.x;
+		//float accY = Input.acceleration.y;
+		//Vector3 movement = new Vector3 (moveHorizontal * moveSpeed , moveVertical * moveSpeed, speed);
 
 		float moveHorizontal = Input.GetAxis ("Horizontal");
 		float moveVertical = Input.GetAxis ("Vertical");
-		float accX = Input.acceleration.x;
-		float accY = Input.acceleration.y;
-		//Vector3 movement = new Vector3 (moveHorizontal * moveSpeed , moveVertical * moveSpeed, speed);
-		Vector3 movement = new Vector3 (accX * moveSpeed , accY * moveSpeed, speed);
+		Vector3 movement = new Vector3 (moveHorizontal * moveSpeed, moveVertical * moveSpeed, speed);
 		rb.velocity = (movement);
 
 		//Border Collision = bounce back
 		int borderRicochet = 5000;
-		if ( transform.position.y < 0) {
-			rb.AddForce (Random.Range(-borderRicochet,borderRicochet),borderRicochet,0) ;
-			//stop player movement after 2 second able to move again
+		if (transform.position.y < 0) {
+			rb.AddForce (Random.Range (-borderRicochet, borderRicochet), borderRicochet, 0);
+			//stop player movement after 1.5 second able to move again
 			moveSpeed = 0f; 
-			Invoke ("move",1.5f);
+			Invoke ("moveAgain", 1.5f);
 		}
-		if ( transform.position.y > 10) {
-			rb.AddForce (Random.Range(-borderRicochet,borderRicochet),-borderRicochet,0) ;
+		if (transform.position.y > 10) {
+			rb.AddForce (Random.Range (-borderRicochet, borderRicochet), -borderRicochet, 0);
 			moveSpeed = 0f;
-			Invoke ("move",1.5f);
+			Invoke ("moveAgain", 1.5f);
 		}
-		if ( transform.position.x < -5f) {
-			rb.AddForce (borderRicochet,Random.Range(-borderRicochet,borderRicochet),0) ;
+		if (transform.position.x < -5f) {
+			rb.AddForce (borderRicochet, Random.Range (-borderRicochet, borderRicochet), 0);
 			moveSpeed = 0f;
-			Invoke ("move",1.5f);
+			Invoke ("moveAgain", 1.5f);
 		}
-		if ( transform.position.x > 5f) {
-			rb.AddForce (-borderRicochet,Random.Range(-borderRicochet,borderRicochet),0) ;
+		if (transform.position.x > 5f) {
+			rb.AddForce (-borderRicochet, Random.Range (-borderRicochet, borderRicochet), 0);
 			moveSpeed = 0f;
-			Invoke ("move",1.5f);
+			Invoke ("moveAgain", 1.5f);
 		}
 	}
 
-	 public void move(){ //make the player move again
+	private void moveAgain ()
+	{ //make the player move again
 		moveSpeed = 5.0f;
 	}
 
 	//all triggers here
 	void OnTriggerEnter (Collider other)
 	{
-
 		//create new road
 		if (other.gameObject.tag == "CreateRoad") {
 			if (skies == 1) {
@@ -148,10 +143,8 @@ public class Player : MonoBehaviour
 			}
 
 		}
-
 		//destroy previous road
 		if (other.gameObject.tag == "DestroyRoad") {
-
 			Destroy (other.transform.parent.gameObject); //destroy the parent object in which this object is attached
 		}
 	}
@@ -166,45 +159,42 @@ public class Player : MonoBehaviour
 			if (isShield) {
 				Destroy (other.gameObject);
 				isShield = false;
-			} 
-			else {
+				shieldfx.SetActive (false);
+				//set false active particle
+			} else {
 				//bounce back if hit obstacle
-				rb.AddForce (Random.Range(-obstacleRicochet,obstacleRicochet),Random.Range(-obstacleRicochet,obstacleRicochet),-obstacleRicochet) ;
+				rb.AddForce (Random.Range (-obstacleRicochet, obstacleRicochet), Random.Range (-obstacleRicochet, obstacleRicochet), -obstacleRicochet);
 				//turn off collider to remove double damage on the same object
 				Collider ot = other.gameObject.GetComponent<Collider> ();
 				ot.enabled = !ot.enabled;
 				health--;
 			}
+		}
 
+		if (other.gameObject.name == "Honey(Clone)") {
+			DB.coinGain++;
+			Destroy (other.gameObject);
 		}
-		if (other.gameObject.tag == "PowerUps") {
-			if (other.gameObject.name == "Burger(Clone)") {
-				speed += 5;
-				Invoke ("speedNorm",5);
-				Destroy (other.gameObject);
-			}
-			if (other.gameObject.name == "Pizza(Clone)") {
-				isShield = true;
-				//health = 1;
-				Destroy (other.gameObject);
-			}
-		}
-//		//Border Collision = bounce back
-//		if (other.gameObject.name == "SkyBottom" || transform.position.y < 0.2f) {
-//			rb.AddForce (Random.Range(-borderRicochet,borderRicochet),borderRicochet,0) ;
-//		}
-//		if (other.gameObject.name == "SkyTop" || transform.position.y > 9.5f) {
-//			rb.AddForce (Random.Range(-borderRicochet,borderRicochet),-borderRicochet,0) ;
-//		}
-//		if (other.gameObject.name == "SkyLeft" || transform.position.x < -4.5f) {
-//			rb.AddForce (borderRicochet,Random.Range(-borderRicochet,borderRicochet),0) ;
-//		}
-//		if (other.gameObject.name == "SkyRight" || transform.position.x > 4.5f) {
-//			rb.AddForce (-borderRicochet,Random.Range(-borderRicochet,borderRicochet),0) ;
-//		}
 	}
 
-	void speedNorm(){ //return speed to normal after 5 seconds of getting burger power up
+	public void pu1Active ()
+	{
+		isBoost = true;
+		speed += 5;
+		speedfx.SetActive (true);
+		Invoke ("speedNorm", 5);
+	}
+
+	public void pu2Active ()
+	{
+		isShield = true;
+		shieldfx.SetActive (true);
+	}
+
+	private void speedNorm ()
+	{ //return speed to normal after 5 seconds of getting burger power up
+		isBoost = false;
+		speedfx.SetActive (false);
 		speed -= 5;
 	}
 
@@ -215,7 +205,8 @@ public class Player : MonoBehaviour
 			health = 3; 
 		}
 		if (health <= 0) {
-			score = distance;
+			DB.currScore = distance;
+			DB.afterGameUpdate ();		//do update DB and check highscoree and coin gain
 			SceneManager.LoadScene (2);
 		}
 		if (health > 0) {
@@ -231,12 +222,12 @@ public class Player : MonoBehaviour
 		int dis500 = 30; //set for demo. change to 500 later
 
 		if (distance > (lvlDistance * lvlMultiplier)) {
-			GameObjectGenerator.pwCount = Random.Range (1, 4); //power up count change every lvlDistance reach
+			GameObjectGenerator.coinCount = Random.Range (1, 5); //power up count change every lvlDistance reach
 			int lvlDist = lvlDistance * lvlMultiplier;
 			speed += incSpeed;
 			lvlMultiplier++;
 
-			Debug.Log (lvlDist+ "  distance reach inc speed");
+			Debug.Log (lvlDist + "  distance reach inc speed");
 			if (speed >= maxSpeed) { //checks if max speed exceed
 				speed = maxSpeed;
 			}
@@ -246,8 +237,7 @@ public class Player : MonoBehaviour
 				dis1KMultiplier++;
 				Debug.Log ("Enter inc incSpeed by.5 every +90dis");
 			}
-
-
+				
 			if (lvlDist == (dis500 * dis5HMultiplier) && !obsMaxCount) { //Obstacle count per certain lvlDistance reach
 				GameObjectGenerator.obsCount += Random.Range (1, 6);
 				dis5HMultiplier++;
