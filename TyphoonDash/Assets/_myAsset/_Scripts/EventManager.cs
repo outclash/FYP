@@ -4,12 +4,12 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using TMPro;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 public class EventManager : MonoBehaviour
 {
 
 	private GameManager GM;
-	private bool main;
 
 	void Awake ()
 	{
@@ -19,16 +19,7 @@ public class EventManager : MonoBehaviour
 
 	}
 
-	void Start ()
-	{
-		main = true;
-		if (GM.DB.logName != null && GM.DB.charname != null && main) {
-			GM.MainMenu.SetActive (true);
-			GM.Login.SetActive (false);
-			Debug.Log ("wtf");
-		}
-		Debug.Log (GM.DB.logName);
-	}
+
 
 	public void play ()
 	{
@@ -133,24 +124,31 @@ public class EventManager : MonoBehaviour
 
 	public void clickedBuyButton ()
 	{
+		int cost = 5;
 		string btname = EventSystem.current.currentSelectedGameObject.name;
 		if (btname == "pu1button") {
-			if (GM.DB.currCoins < 10) {
+			if (GM.DB.currCoins < cost) {
 				Debug.Log ("not enough money pu1");
+				GM.sysMsg.color = Color.red;
+				GM.sysMsg.text = "Balance,not enough";
+				Invoke ("deActiveSysMsg", 3);
 			} else {
 				GM.DB.pu1Count++;
-				GM.DB.currCoins -= 10;
+				GM.DB.currCoins -= cost;
 				GM.DB.updateProfile ();
 				Debug.Log ("bought pu1");
 			}
 		}
 
 		if (btname == "pu2button") {
-			if (GM.DB.currCoins < 10) {
+			if (GM.DB.currCoins < cost) {
 				Debug.Log ("not enough money pu2");
+				GM.sysMsg.color = Color.red;
+				GM.sysMsg.text = "Balance,not enough";
+				Invoke ("deActiveSysMsg", 3);
 			} else {
 				GM.DB.pu2Count++;
-				GM.DB.currCoins -= 10;
+				GM.DB.currCoins -= cost;
 				GM.DB.updateProfile ();
 				Debug.Log ("bought pu2");
 			}
@@ -165,7 +163,6 @@ public class EventManager : MonoBehaviour
 			GM.sysMsg.text = "Select Character";
 			Invoke ("deActiveSysMsg", 3);
 		} else {
-			main = false;
 			GM.DB.deleteProfile ();
 			setProfileBoard ();
 			Debug.Log ("del prof s");
@@ -206,7 +203,7 @@ public class EventManager : MonoBehaviour
 		GM.sysMsg.text = "";
 	}
 
-	private void setProfileBoard ()
+	public void setProfileBoard ()
 	{
 
 		//clears all data first
@@ -227,6 +224,7 @@ public class EventManager : MonoBehaviour
 			tmpObj.transform.GetChild (4).GetComponent<TextMeshProUGUI> ().text = GM.DB.profList [i].PU2.ToString ();
 
 			tmpObj.transform.SetParent (GM.ProfBoard.transform.GetChild (4).transform);
+			tmpObj.GetComponent<Button> ().onClick.AddListener(clickedProfile);
 			tmpObj.GetComponent<RectTransform> ().localScale = new Vector3 (0.45f, 1.35f, 1);
 			Debug.Log ("PROFIEL");
 		}

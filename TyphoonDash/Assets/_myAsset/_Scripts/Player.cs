@@ -21,7 +21,7 @@ public class Player : MonoBehaviour
 	public float distance;
 	private float moveSpeed;
 	//for computing to inc lvl
-	public static float score;
+	//public static float score;
 	private Rigidbody rb;
 	private int health;
 	public Image heart;
@@ -42,9 +42,12 @@ public class Player : MonoBehaviour
 	int dis5HMultiplier;
 	float incSpeed;
 
-	public DBManager DB;
+	private DBManager DB;
 	private GameObject speedfx;
 	private GameObject shieldfx;
+	private GameObject stunnedImg;
+	private VirtualJoystick vrJS;
+	private Vector3 vrjsDir;
 
 	void Awake ()
 	{ //reference and initialise even if the script is not yet enabled.
@@ -52,8 +55,10 @@ public class Player : MonoBehaviour
 		GameObjectGenerator.coinCount = 1;
 		GameObjectGenerator.obsCount = 10;
 		DB = GameObject.Find ("DBManager").GetComponent<DBManager> ();
+		stunnedImg = GameObject.Find ("stunned");
 		speedfx = GameObject.Find ("Speedfx");
 		shieldfx = GameObject.Find ("Bee").transform.GetChild (2).gameObject;
+		vrJS = GameObject.Find ("VrJsContainer").GetComponent<VirtualJoystick> ();
 	}
 
 	// Use this for initialization
@@ -62,7 +67,7 @@ public class Player : MonoBehaviour
 		health = 3;
 		healthSetup ();
 		speed = 10f;
-		moveSpeed = 10.0f;
+		moveSpeed = 5.0f;
 		HorizontalVelocity = 0;
 		VerticalVelocity = 0;
 		distance = 0;
@@ -76,11 +81,13 @@ public class Player : MonoBehaviour
 		isBoost = false;
 		speedfx.SetActive (false);
 		shieldfx.SetActive (false);
+		stunnedImg.SetActive (false);
 	}
 
 	// Update is called once per frame
 	void Update ()
 	{
+		vrjsDir = vrJS.InputDirection;
 		healthSetup ();
 		distance = transform.position.z;
 		increaseLevel ();
@@ -96,37 +103,49 @@ public class Player : MonoBehaviour
 
 		float moveHorizontal = Input.GetAxis ("Horizontal");
 		float moveVertical = Input.GetAxis ("Vertical");
-		Vector3 movement = new Vector3 (moveHorizontal * moveSpeed, moveVertical * moveSpeed, speed);
+		//Debug.Log (vrjsDir);
+		Vector3 movement = new Vector3 (vrjsDir.x * moveSpeed, vrjsDir.y * moveSpeed, speed);
 		rb.velocity = (movement);
 
 		//Border Collision = bounce back
 		int borderRicochet = 5000;
-		if (transform.position.y < 0) {
+		float rightleft_OoB = 4.5f; //out of bound limit
+		float bot_OoB = 3f;
+		float top_OoB = 7f;
+		if (transform.position.y < bot_OoB) {
 			rb.AddForce (Random.Range (-borderRicochet, borderRicochet), borderRicochet, 0);
 			//stop player movement after 1.5 second able to move again
 			moveSpeed = 0f; 
 			Invoke ("moveAgain", 1.5f);
+			//add image
+			//stunnedImg.rectTransform.position = new Vector3( transform.position.x,transform.position.y + 10,0);
+			//stunnedImg.enabled = !stunnedImg.enabled;
+			stunnedImg.SetActive (true);
 		}
-		if (transform.position.y > 10) {
+		if (transform.position.y > top_OoB) {
 			rb.AddForce (Random.Range (-borderRicochet, borderRicochet), -borderRicochet, 0);
 			moveSpeed = 0f;
 			Invoke ("moveAgain", 1.5f);
+			stunnedImg.SetActive (true);
 		}
-		if (transform.position.x < -5f) {
+		if (transform.position.x < -rightleft_OoB) {
 			rb.AddForce (borderRicochet, Random.Range (-borderRicochet, borderRicochet), 0);
 			moveSpeed = 0f;
 			Invoke ("moveAgain", 1.5f);
+			stunnedImg.SetActive (true);
 		}
-		if (transform.position.x > 5f) {
+		if (transform.position.x > rightleft_OoB) {
 			rb.AddForce (-borderRicochet, Random.Range (-borderRicochet, borderRicochet), 0);
 			moveSpeed = 0f;
 			Invoke ("moveAgain", 1.5f);
+			stunnedImg.SetActive (true);
 		}
 	}
 
 	private void moveAgain ()
 	{ //make the player move again
 		moveSpeed = 5.0f;
+		stunnedImg.SetActive (false);
 	}
 
 	//all triggers here
@@ -137,9 +156,11 @@ public class Player : MonoBehaviour
 			if (skies == 1) {
 				Instantiate (SkyRoadPrefab2, new Vector3 (11.49982f, 3.754295f, other.transform.parent.position.z + 100f), SkyRoadPrefab2.rotation);
 				skies = 2;
+				Debug.Log ("instantiate sky 1 and skynxt: " + skies);
 			} else {
 				Instantiate (SkyRoadPrefab1, new Vector3 (11.49982f, 3.754295f, other.transform.parent.position.z + 100f), SkyRoadPrefab1.rotation);
 				skies = 1;
+				Debug.Log ("instantiate sky 2 and skynxt: " + skies);
 			}
 
 		}
@@ -171,7 +192,7 @@ public class Player : MonoBehaviour
 			}
 		}
 
-		if (other.gameObject.name == "Honey(Clone)") {
+		if (other.gameObject.name == "honey(Clone)") {
 			DB.coinGain++;
 			Destroy (other.gameObject);
 		}
@@ -222,7 +243,7 @@ public class Player : MonoBehaviour
 		int dis500 = 30; //set for demo. change to 500 later
 
 		if (distance > (lvlDistance * lvlMultiplier)) {
-			GameObjectGenerator.coinCount = Random.Range (1, 5); //power up count change every lvlDistance reach
+			GameObjectGenerator.coinCount = Random.Range (1, 11); //coins up count change every lvlDistance reach
 			int lvlDist = lvlDistance * lvlMultiplier;
 			speed += incSpeed;
 			lvlMultiplier++;

@@ -25,7 +25,7 @@ public class ScoreManager : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-		score.text = Player.score.ToString ("F") + "M";
+		//score.text = Player.score.ToString ("F") + "M";
 
 		//compare scores 
 //		float tmp;

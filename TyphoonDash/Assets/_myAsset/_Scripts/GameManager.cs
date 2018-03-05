@@ -39,12 +39,24 @@ public class GameManager : MonoBehaviour {
 	void Start () {
 		Debug.Log ("start GM");
 		sysMsg.text = "";
-		Login.SetActive (true);
-		newACC.SetActive (false);
-		ProfBoard.SetActive (false);
-		MainMenu.SetActive (false);
-		newProf.SetActive (false);
-		shop.SetActive (false);
+		if (DB.logName != null && DB.charname != null) {
+			MainMenu.SetActive (true);
+			Login.SetActive (false);
+			newACC.SetActive (false);
+			ProfBoard.SetActive (false);
+			newProf.SetActive (false);
+			shop.SetActive (false);
+			Debug.Log ("Login and Ready to play");
+		} else {
+			Login.SetActive (true);
+			newACC.SetActive (false);
+			ProfBoard.SetActive (false);
+			MainMenu.SetActive (false);
+			newProf.SetActive (false);
+			shop.SetActive (false);
+		}
+
+		Debug.Log (DB.logName+DB.logName);
 	}
 
 	void Update(){

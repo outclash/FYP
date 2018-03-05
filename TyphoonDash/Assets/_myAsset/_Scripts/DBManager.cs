@@ -21,8 +21,7 @@ public class DBManager : MonoBehaviour
 	public int coinGain; //store coin gain per game
 	public float currScore; //store score per game
 
-	void Start ()
-	{
+	void Awake(){
 		//Set this Game manager to persist all the time
 		if (DB == null) {
 			DontDestroyOnLoad (gameObject);
@@ -31,6 +30,9 @@ public class DBManager : MonoBehaviour
 			Destroy (gameObject);
 		}
 		dbPath = "URI=file:" + Application.dataPath + "/gameDB.sqlite";
+	}
+	void Start ()
+	{
 		//loginAcc ("user1","password");
 		logName = null;
 		charCount = 0;
@@ -142,9 +144,9 @@ public class DBManager : MonoBehaviour
 
 						dbCmd.Parameters.Add (new SqliteParameter { ParameterName = "chname", Value = cname });
 						dbCmd.Parameters.Add (new SqliteParameter { ParameterName = "score", Value = "0" });
-						dbCmd.Parameters.Add (new SqliteParameter { ParameterName = "coin", Value = 0 });
-						dbCmd.Parameters.Add (new SqliteParameter { ParameterName = "pu1", Value = 0 });
-						dbCmd.Parameters.Add (new SqliteParameter { ParameterName = "pu2", Value = 0 });
+						dbCmd.Parameters.Add (new SqliteParameter { ParameterName = "coin", Value = 10 });
+						dbCmd.Parameters.Add (new SqliteParameter { ParameterName = "pu1", Value = 1 });
+						dbCmd.Parameters.Add (new SqliteParameter { ParameterName = "pu2", Value = 1 });
 						dbCmd.Parameters.Add (new SqliteParameter { ParameterName = "usname", Value = uname });
 						res = dbCmd.ExecuteNonQuery ();
 						//object sd = dbCmd.ExecuteScalar ();
@@ -177,9 +179,9 @@ public class DBManager : MonoBehaviour
 
 					dbCmd.Parameters.Add (new SqliteParameter { ParameterName = "chname", Value = cname });
 					dbCmd.Parameters.Add (new SqliteParameter { ParameterName = "score", Value = "0" });
-					dbCmd.Parameters.Add (new SqliteParameter { ParameterName = "coin", Value = 0 });
-					dbCmd.Parameters.Add (new SqliteParameter { ParameterName = "pu1", Value = 0 });
-					dbCmd.Parameters.Add (new SqliteParameter { ParameterName = "pu2", Value = 0 });
+					dbCmd.Parameters.Add (new SqliteParameter { ParameterName = "coin", Value = 10 });
+					dbCmd.Parameters.Add (new SqliteParameter { ParameterName = "pu1", Value = 1 });
+					dbCmd.Parameters.Add (new SqliteParameter { ParameterName = "pu2", Value = 1 });
 					dbCmd.Parameters.Add (new SqliteParameter { ParameterName = "usname", Value = logName });
 					int res = dbCmd.ExecuteNonQuery ();
 					//object sd = dbCmd.ExecuteScalar ();
