@@ -15,9 +15,7 @@ public class GameObjectGenerator : MonoBehaviour
 	public Transform rock3Prefab;
 	public Transform honeyPrefab; // are coins
 	private int rndObsObj;
-	//randomly pick what obstacle object to instantiate
 	public static int obsCount;
-	//to be global? increase per distance
 	public  static int coinCount;
 
 	void Start ()
@@ -26,11 +24,13 @@ public class GameObjectGenerator : MonoBehaviour
 		for (int i = 0; i < obsCount; i++) {
 			rndObsObj = Random.Range (0, 3); 
 
-			// Position range is calculated on base on camer FoV and character movement limit
+			// Position range is calculated on base on camera FoV and character movement limit
 			Vector3 position = new Vector3 (Random.Range (-4f, 4f) - transform.position.x, Random.Range (3.5f, 6f) - transform.position.y, Random.Range (-42.0f, 40.0f) ); 
 
 			//could add different obstacle besides rock
 			if (rndObsObj == 0) {
+				//instantiation of the obstacle prefabs and set them up to be a the child of the game object this script is attached
+				// for easy destroy/removing of game objects
 				Transform go = Instantiate (rock1Prefab, position, rock1Prefab.rotation);
 				go.transform.SetParent (transform,false);
 			}

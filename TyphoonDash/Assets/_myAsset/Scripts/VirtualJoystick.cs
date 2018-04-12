@@ -14,7 +14,6 @@ public class VirtualJoystick : MonoBehaviour, IDragHandler, IPointerUpHandler,IP
 
 	private Image jsContainer;
 	private Image joystick;
-
 	public Vector3 InputDirection ;
 
 	void Start(){
@@ -50,12 +49,12 @@ public class VirtualJoystick : MonoBehaviour, IDragHandler, IPointerUpHandler,IP
 	}
 
 	public void OnPointerDown(PointerEventData ped){
-
+		//returns the position of where the location of the pointer
 		OnDrag(ped);
 	}
 
 	public void OnPointerUp(PointerEventData ped){
-
+		//resets the position of the image joystick
 		InputDirection = Vector3.zero;
 		joystick.rectTransform.anchoredPosition = Vector3.zero;
 	}

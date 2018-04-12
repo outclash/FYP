@@ -8,6 +8,7 @@ using UnityEngine.UI;
 
 /*
  * Class that is used for the events of the UI of the home scene
+ * These functions are all connected to different buttons of the UI
 */
 public class EventManager : MonoBehaviour
 {
@@ -20,12 +21,12 @@ public class EventManager : MonoBehaviour
 		//Debug.Log ("awake EM");
 	}
 
-	public void play ()
+	public void play () //load the game scene
 	{
 		SceneManager.LoadScene (1);
 	}
 
-	public void loginUser ()
+	public void loginUser () //checks and verify if user login correctly
 	{
 		TMP_InputField userInput = GameObject.Find ("UsernameInput").GetComponent<TMP_InputField> ();
 		TMP_InputField pwInput = GameObject.Find ("passwordInput").GetComponent<TMP_InputField> ();
@@ -46,7 +47,7 @@ public class EventManager : MonoBehaviour
 		}
 	}
 
-	public void createAccount ()
+	public void createAccount () //sets and check if the creation of new account is valid.
 	{
 		TMP_InputField userInput = GameObject.Find ("UsernameInput").GetComponent<TMP_InputField> ();
 		TMP_InputField pwInput = GameObject.Find ("passwordInput").GetComponent<TMP_InputField> ();
@@ -76,7 +77,7 @@ public class EventManager : MonoBehaviour
 
 	}
 
-	public void newChara ()
+	public void newChara () //checks if the new character name is valid and create that profile if valid.
 	{
 		TMP_InputField chInput = GameObject.Find ("charnameInput").GetComponent<TMP_InputField> ();
 
@@ -105,7 +106,7 @@ public class EventManager : MonoBehaviour
 		}
 	}
 
-	public void clickedProfile ()
+	public void clickedProfile () //sets up the profile fields selected in the profile screen
 	{
 		//takes the character name of the selected button
 		string cname = EventSystem.current.currentSelectedGameObject.gameObject.transform.GetChild (0).GetComponent<TextMeshProUGUI> ().text;
@@ -121,40 +122,36 @@ public class EventManager : MonoBehaviour
 		//Debug.Log ("clicked prof details:" + GM.DB.charname + " " + GM.DB.currHighScore + " " + GM.DB.currCoins + " " + GM.DB.pu1Count + " " + GM.DB.pu2Count);
 	}
 
-	public void clickedBuyButton ()
+	public void clickedBuyButton () //This handles the shop when buying power up
 	{
 		int cost = 5;
 		string btname = EventSystem.current.currentSelectedGameObject.name;
 		if (btname == "pu1button") {
-			if (GM.DB.currCoins < cost) {
-				//Debug.Log ("not enough money pu1");
+			if (GM.DB.currCoins < cost) { //if not enough coins to buy power up 1
 				GM.sysMsg.color = Color.red;
 				GM.sysMsg.text = "Balance,not enough";
 				Invoke ("deActiveSysMsg", 3);
-			} else {
+			} else { //add power up and update database
 				GM.DB.pu1Count++;
 				GM.DB.currCoins -= cost;
 				GM.DB.updateProfile ();
-				//Debug.Log ("bought pu1");
 			}
 		}
 
-		if (btname == "pu2button") {
+		if (btname == "pu2button") { //if not enough coins to buy power up 2
 			if (GM.DB.currCoins < cost) {
-				//Debug.Log ("not enough money pu2");
 				GM.sysMsg.color = Color.red;
 				GM.sysMsg.text = "Balance,not enough";
 				Invoke ("deActiveSysMsg", 3);
-			} else {
+			} else { //add power up and update database
 				GM.DB.pu2Count++;
 				GM.DB.currCoins -= cost;
 				GM.DB.updateProfile ();
-				//Debug.Log ("bought pu2");
 			}
 		}
 	}
 
-	public void delChara ()
+	public void delChara () //deletes profile by running the database delete profile function
 	{
 		if (GM.DB.charname == null) {
 			//Debug.Log ("null choose prof");
@@ -168,7 +165,7 @@ public class EventManager : MonoBehaviour
 		}
 	}
 
-	public void delAcc ()
+	public void delAcc () //deletes accounts by running the Database delete function
 	{
 		GM.DB.deleteAccount ();
 		GM.reset ();
@@ -176,7 +173,7 @@ public class EventManager : MonoBehaviour
 		GM.MainMenu.SetActive (false);
 	}
 
-	public void loadProf ()
+	public void loadProf () //activates the main menu screen after loading the profile chosen
 	{
 		if (GM.DB.charname == null) {
 			//Debug.Log ("null choose prof");
@@ -189,7 +186,7 @@ public class EventManager : MonoBehaviour
 		}
 	}
 
-	public void LogOut ()
+	public void LogOut () //resets the necessary fields. and shows the log in screen again
 	{
 		GM.reset ();
 		GM.ProfBoard.SetActive (false);
@@ -197,15 +194,15 @@ public class EventManager : MonoBehaviour
 		GM.Login.SetActive (true);
 	}
 
-	private void deActiveSysMsg ()
+	private void deActiveSysMsg () //this deactivates the system error message
 	{
 		GM.sysMsg.text = "";
 	}
 
-	public void setProfileBoard ()
+	public void setProfileBoard () //this sets all the profile data of the account from the database into the profile screen
 	{
 
-		//clears all data first
+		//clears all data first by destroying the previous list
 		Transform temp = GM.ProfBoard.transform.GetChild (4).transform;
 		for (int i = 0; i < temp.childCount; i++) {
 			Destroy (temp.GetChild (i).gameObject);
@@ -213,19 +210,19 @@ public class EventManager : MonoBehaviour
 
 		//populate profile board
 		for (int i = 0; i < GM.DB.profList.Count; i++) {
-
+			//instantiate the profile UI look button
 			GameObject tmpObj = Instantiate (GM.profDataPrefab);
-
+			//gets profile details in the  profilelist variable which came from the database
 			tmpObj.transform.GetChild (0).GetComponent<TextMeshProUGUI> ().text = GM.DB.profList [i].CharName;
 			tmpObj.transform.GetChild (1).GetComponent<TextMeshProUGUI> ().text = GM.DB.profList [i].Score;
 			tmpObj.transform.GetChild (2).GetComponent<TextMeshProUGUI> ().text = GM.DB.profList [i].Coins.ToString ();
 			tmpObj.transform.GetChild (3).GetComponent<TextMeshProUGUI> ().text = GM.DB.profList [i].PU1.ToString ();
 			tmpObj.transform.GetChild (4).GetComponent<TextMeshProUGUI> ().text = GM.DB.profList [i].PU2.ToString ();
-
+			//sets the button clickable with on click event to verify the selected profile
 			tmpObj.transform.SetParent (GM.ProfBoard.transform.GetChild (4).transform);
 			tmpObj.GetComponent<Button> ().onClick.AddListener(clickedProfile);
 			tmpObj.GetComponent<RectTransform> ().localScale = new Vector3 (0.45f, 1.35f, 1);
-			//Debug.Log ("PROFIEL");
+		
 		}
 	}
 		

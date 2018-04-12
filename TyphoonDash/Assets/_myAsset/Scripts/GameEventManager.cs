@@ -23,7 +23,8 @@ public class GameEventManager : MonoBehaviour
 	private float tmpSpd;
 
 	void Awake ()
-	{
+	{	
+	//set ups the reference to objects
 		DB = GameObject.Find ("DBManager").GetComponent<DBManager> ();
 		player = GameObject.FindGameObjectWithTag ("Player").GetComponent<Player> ();
 		pu1bt = GameObject.Find ("pu1").GetComponent<Button> ();
@@ -37,15 +38,17 @@ public class GameEventManager : MonoBehaviour
 
 	void Start ()
 	{
+		//set pause menu scene false which mean game is running
 		pausemenu.SetActive (false);
 	}
 
 	void Update ()
 	{
-
+		//sets the power-ups text count
 		pu1txt.text = DB.pu1Count.ToString ();
 		pu2txt.text = DB.pu2Count.ToString ();
 		honeytxt.text = DB.coinGain.ToString ();
+		//sets if the power-ups are interactable when they have value of >0 
 		if (DB.pu1Count <= 0 || player.isBoost) { //or on speed boost
 			pu1bt.interactable = false;
 			//Debug.Log ("pu1: " + player.isBoost + DB.pu1Count );
@@ -61,7 +64,8 @@ public class GameEventManager : MonoBehaviour
 			//Debug.Log ("pu2: ready "); 
 		}
 	}
-
+	
+	//function that reduce the power-ups value 
 	public void clickedpowUp ()
 	{
 		//returns selected button name
@@ -76,24 +80,28 @@ public class GameEventManager : MonoBehaviour
 		}
 		//Debug.Log ("clicked powup:1");
 	}
-
+	//function that pause the game 
 	public void pause ()
 	{
+		//player stop moving by player speed = 0
 		tmpSpd = player.speed;
 		player.speed = 0f;
 		pausemenu.SetActive (true);
 
 	}
-
+	//resume game
 	public void resume ()
 	{
 		pausemenu.SetActive (false);
 		player.speed = tmpSpd;
 	}
-
+	
+	//return to main menu
 	public void mainMenu ()
 	{
+		//before returning update Database profile details such as coins collection and power-ups used
 		DB.afterGameUpdate ();
+		//loads the main menu scene
 		SceneManager.LoadScene (0);
 	}
 }

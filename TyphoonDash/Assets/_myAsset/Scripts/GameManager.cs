@@ -22,7 +22,7 @@ public class GameManager : MonoBehaviour {
 	public GameObject shop;
 	public GameObject profDataPrefab;
 
-	//make db singleton just make thjis every time
+
 	void Awake(){
 		DB = GameObject.Find ("DBManager").GetComponent<DBManager> ();
 		sysMsg = GameObject.Find ("sysMsg").GetComponent<TextMeshProUGUI>();
@@ -39,8 +39,9 @@ public class GameManager : MonoBehaviour {
 	}
 
 	void Start () {
-		//Debug.Log ("start GM");
+		
 		sysMsg.text = "";
+		//shows the main menu if login
 		if (DB.logName != null && DB.charname != null) {
 			MainMenu.SetActive (true);
 			Login.SetActive (false);
@@ -50,6 +51,7 @@ public class GameManager : MonoBehaviour {
 			shop.SetActive (false);
 			//Debug.Log ("Login and Ready to play");
 		} else {
+		//Only shows the login screen at the start
 			Login.SetActive (true);
 			newACC.SetActive (false);
 			ProfBoard.SetActive (false);
@@ -67,7 +69,7 @@ public class GameManager : MonoBehaviour {
 		coinstxt.text = DB.currCoins.ToString ();
 	}
 
-	public void reset(){
+	public void reset(){ //resets the account login to default value 
 		DB.logName = null;
 		DB.charCount = 0;
 		DB.charname = null;

@@ -46,11 +46,16 @@ public class DBManager : MonoBehaviour
 	//runs once to create account and profile tables
 	public void createDBTable ()
 	{ 
+		//connection the SQL
 		using (IDbConnection conn = new SqliteConnection (dbPath)) {
 			try {
+				//open the connection
 				conn.Open ();
+				//create a command executer
 				using (IDbCommand dbCmd = conn.CreateCommand ()) {
+					//make a SQL query
 					string query = "CREATE TABLE IF NOT EXISTS `Account` (`accID` INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, `Username` VARCHAR(20) NOT NULL UNIQUE, `Password` VARCHAR(20) NOT NULL, 'CharCount' INTEGER );";
+					//add query and execute query 
 					dbCmd.CommandText = query;
 					int res = dbCmd.ExecuteNonQuery ();
 					//Debug.Log ("table result: " + res); //0 = success
@@ -58,13 +63,13 @@ public class DBManager : MonoBehaviour
 					query = "CREATE TABLE IF NOT EXISTS `Profile` (`profID` INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, 'CharName' VARCHAR(20) NOT NULL UNIQUE, 'Score' TEXT, 'Coins' INTEGER, `PU1` INTEGER, `PU2` INTEGER, 'Username' VARCHAR(20) NOT NULL, FOREIGN KEY(Username) REFERENCES Account(Username));";
 					dbCmd.CommandText = query;
 					res = dbCmd.ExecuteNonQuery ();
-
-					//Debug.Log ("table result prof: " + res); //0 = success using create
 				}
 			 
 			} catch (Exception e) {
+				//can add debug for checking error e
 				//Debug.Log ("Error creating tables");
 			} finally {
+			//close connection used
 				conn.Close ();
 			}
 		}
@@ -79,6 +84,7 @@ public class DBManager : MonoBehaviour
 				using (IDbCommand dbCmd = conn.CreateCommand ()) {
 					string query = "SELECT Password, CharCount FROM Account WHERE Username = @usname";
 					dbCmd.CommandText = query;
+					//parameterised query to avoid sql injections
 					dbCmd.Parameters.Add (new SqliteParameter { ParameterName = "usname", Value = username });
 					int res = dbCmd.ExecuteNonQuery ();
 					if (res == 0) {
@@ -211,7 +217,7 @@ public class DBManager : MonoBehaviour
 					string query = "SELECT * FROM Profile WHERE Username = @usname";
 					dbCmd.CommandText = query;
 					dbCmd.Parameters.Add (new SqliteParameter { ParameterName = "usname", Value = logName });
-
+					//read data using IDataReader goes through every data
 					using (IDataReader reader = dbCmd.ExecuteReader ()) {
 						while (reader.Read ()) {
 							profList.Add (new ProfileList (reader.GetString (1), reader.GetString (2), reader.GetInt32 (3), reader.GetInt32 (4), reader.GetInt32 (5)));

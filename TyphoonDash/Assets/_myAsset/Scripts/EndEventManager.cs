@@ -21,16 +21,18 @@ public class EndEventManager : MonoBehaviour {
 	}
 
 	void Start(){
+		//sets up score and coins text to screen
 		score.text = DB.currScore.ToString ("F") + "M";
 		coinearn.text = DB.coinGain.ToString ();
 	}
-
+	
+	//function button to play again
 	public void play(){
 		DB.coinGain = 0;
-		SceneManager.LoadScene (1);
+		SceneManager.LoadScene (1); //load a new play game scene
 	}
 
 	public void mainMenu(){
-		SceneManager.LoadScene (0);
+		SceneManager.LoadScene (0); //load back to main menu
 	}
 }

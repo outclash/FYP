@@ -26,23 +26,20 @@ public class Player : MonoBehaviour
 	public Sprite[] spHP;
 	public bool isShield;
 	public bool isBoost;
-
 	//Prefabs
 	//fields to create new road, reference to a Prefab object
 	public Transform SkyRoadPrefab1;
 	public Transform SkyRoadPrefab2;
 	private int skies;	//checks if what sky is gonna be instanstiated
-
 	//level increase fields
 	bool obsMaxCount;
 	int lvlMultiplier;
 	int dis1KMultiplier;
 	int dis5HMultiplier;
 	float incSpeed;
-
 	//Connection to Database
 	private DBManager DB;
-
+	//Game object of power-ups
 	private GameObject speedfx;
 	private GameObject shieldfx;
 	private GameObject stunnedImg;
@@ -50,8 +47,10 @@ public class Player : MonoBehaviour
 	private VirtualJoystick vrJS;
 	private Vector3 vrjsDir;
 
-	void Awake ()
-	{ //reference and initialise even if the script is not yet enabled.
+	//reference and initialisation of fields even if the script is not yet enabled.
+	//Awake() good for initialisation of game objects and components 
+	void Awake () 
+	{ 
 		rb = GetComponent<Rigidbody> ();
 		GameObjectGenerator.coinCount = 1;
 		GameObjectGenerator.obsCount = 10;
@@ -87,44 +86,51 @@ public class Player : MonoBehaviour
 
 	// Update is called once per frame
 	void Update ()
-	{
+	{	
+		//updates the virtual joystick value
 		vrjsDir = vrJS.InputDirection;
+		//updates the health 
 		healthSetup ();
+		//update the score base on the z position of player
 		distance = transform.position.z;
+		//update level increaser
 		increaseLevel ();
 	}
 
-	void FixedUpdate () //runs after all the update was called.
+	void FixedUpdate () //runs after all the update was called. Good for running physics values.
 	{
+		//update player position
 		Vector3 movement = new Vector3 (vrjsDir.x * moveSpeed, vrjsDir.y * moveSpeed, speed);
 		rb.velocity = (movement);
 
-		//Border Collision = bounce back
-		int borderRicochet = 5000;
-		float rightleft_OoB = 4.5f; //out of bound limit
+		//Border Collision codes
+		int borderRicochet = 5000; //how much force is applied to bounce back
+		//out of bound limit /border limit
+		float rightleft_OoB = 4.5f; 
 		float bot_OoB = 3f;
 		float top_OoB = 7f;
-		if (transform.position.y < bot_OoB) {
+		//execute bounce back 
+		if (transform.position.y < bot_OoB) { //bot border
 			rb.AddForce (Random.Range (-borderRicochet, borderRicochet), borderRicochet, 0);
 			//stop player movement, after 1.5 second able to move again
 			moveSpeed = 0f; 
-			Invoke ("moveAgain", 1.5f);
+			Invoke ("moveAgain", 1.5f); //Invoke() invokes the function "moveAgain" after 1.5second
 			//add image
 			stunnedImg.SetActive (true);
 		}
-		if (transform.position.y > top_OoB) {
+		if (transform.position.y > top_OoB) { //top border
 			rb.AddForce (Random.Range (-borderRicochet, borderRicochet), -borderRicochet, 0);
 			moveSpeed = 0f;
 			Invoke ("moveAgain", 1.5f);
 			stunnedImg.SetActive (true);
 		}
-		if (transform.position.x < -rightleft_OoB) {
+		if (transform.position.x < -rightleft_OoB) { //left border
 			rb.AddForce (borderRicochet, Random.Range (-borderRicochet, borderRicochet), 0);
 			moveSpeed = 0f;
 			Invoke ("moveAgain", 1.5f);
 			stunnedImg.SetActive (true);
 		}
-		if (transform.position.x > rightleft_OoB) {
+		if (transform.position.x > rightleft_OoB) { //right border
 			rb.AddForce (-borderRicochet, Random.Range (-borderRicochet, borderRicochet), 0);
 			moveSpeed = 0f;
 			Invoke ("moveAgain", 1.5f);
@@ -165,8 +171,9 @@ public class Player : MonoBehaviour
 	void OnCollisionEnter (Collision other)
 	{
 		int obstacleRicochet = 2000;
+		//if player collides with obstacle objects health decrease 
 		if (other.gameObject.tag == "Danger") {
-			if (isShield) {
+			if (isShield) { //if player has shield health remains instead shield disappear
 				Destroy (other.gameObject);
 				isShield = false;
 				shieldfx.SetActive (false);
@@ -179,7 +186,7 @@ public class Player : MonoBehaviour
 				health--;
 			}
 		}
-
+		//if player collides with honey
 		if (other.gameObject.name == "honey(Clone)") { //add coin
 			DB.coinGain++;
 			Destroy (other.gameObject);
@@ -218,18 +225,20 @@ public class Player : MonoBehaviour
 			DB.afterGameUpdate ();		//do update DB and check highscoree and coin gain
 			SceneManager.LoadScene (2);
 		}
-		if (health > 0) {
+		if (health > 0) { //health display health status on HUD
 			heart.sprite = spHP [health - 1];
 		}
 	}
 
 	void increaseLevel ()
 	{
+		//set up distance milestone for changing level 
 		const int maxSpeed = 50;
 		int lvlDistance = 30; //set up for demo, change to 250 later
 		int dis1000 = 90; //set for demo, change to 1000 later
 		int dis500 = 30; //set for demo. change to 500 later
-
+		
+		// a loop that checks the distance greater with the current level distance. with a multiplier to continuously make level higher
 		if (distance > (lvlDistance * lvlMultiplier)) {
 			GameObjectGenerator.coinCount = Random.Range (1, 11); //coins up count change every lvlDistance reach
 			int lvlDist = lvlDistance * lvlMultiplier;

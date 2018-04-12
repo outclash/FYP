@@ -13,6 +13,7 @@ public class CameraController : MonoBehaviour {
 
 	void Start () {
 //		offset = transform.position - player.transform.position;
+		//offset position of the camera to the player
 		offset = transform.position.z - player.transform.position.z;
 	}
 
@@ -20,6 +21,7 @@ public class CameraController : MonoBehaviour {
 	void LateUpdate ()
 	{ 
 		//transform.position = player.transform.position + offset;
+		//updates the position of camera on scene
 		transform.position = new Vector3(0,5,player.transform.position.z+ offset);
 	}
 }

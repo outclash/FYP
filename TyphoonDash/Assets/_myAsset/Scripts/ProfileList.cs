@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /*
- * Class that will hold the profile values.
+ * Class that will hold the profile values of an account
 */
 public class ProfileList {
 
